@@ -1,34 +1,51 @@
 #!/usr/bin/python3
-""" holds class State"""
-import models
+""" This is the State Module for HBNB project """
+
 from models.base_model import BaseModel, Base
-from models.city import City
-from os import getenv
-import sqlalchemy
-from sqlalchemy import Column, String, ForeignKey
+from sqlalchemy import Column, String
 from sqlalchemy.orm import relationship
+from models.city import City
+import models
+from os import getenv
 
 
 class State(BaseModel, Base):
-    """Representation of state """
-    if models.storage_t == "db":
-        __tablename__ = 'states'
-        name = Column(String(128), nullable=False)
-        cities = relationship("City", backref="state")
-    else:
-        name = ""
+    """ This is the definition of a State class """
+    # The following is the Table name for the State class
+    __tablename__ = "states"
 
-    def __init__(self, *args, **kwargs):
-        """initializes state"""
-        super().__init__(*args, **kwargs)
+    # Setting the name of the state, up to 128 characters, cannot be null
+    name = Column(String(128), nullable=False)
 
-    if models.storage_t != "db":
+    # Defining a relationship with the City class
+    # For DBStorage:
+    # Linked City obj are automatically deleted if the State obj is deleted
+    # And, set the reference from City to State as 'state'
+    if getenv('HBNB_TYPE_STORAGE') == 'db':
+        cities = relationship("City", backref="state",
+                              cascade="all, delete,  delete-orphan")
+
+    # For FileStorage:
+    # Getter attribute to return a list of City instances
+    # with state_id equals to the current State.id
+    if getenv('HBNB_TYPE_STORAGE') != 'db':
         @property
         def cities(self):
-            """getter for list of city instances related to the state"""
-            city_list = []
-            all_cities = models.storage.all(City)
+            # Creating an empty list to store the City instances
+            # associated with this State
+            cities_list = []
+
+            # Getting all the City instances from the storage
+            all_cities = models.storage.all("City")
+
+            # Iterating through all the City instances
             for city in all_cities.values():
+
+                # Checking if the state_id of the City matches id of this State
                 if city.state_id == self.id:
-                    city_list.append(city)
-            return city_list
+
+                    # If there's a match, add the City instance to the list
+                    cities_list.append(city)
+
+            # Returning the list of City instances associated with this State
+            return cities_list

@@ -1,5 +1,5 @@
-#!/usr/bin/python
-""" holds class Amenity"""
+#!/usr/bin/python3
+""" This module is the 'Amenity' Module for HBNB project """
 import models
 from models.base_model import BaseModel, Base
 from os import getenv
@@ -9,13 +9,17 @@ from sqlalchemy.orm import relationship
 
 
 class Amenity(BaseModel, Base):
-    """Representation of Amenity """
-    if models.storage_t == 'db':
-        __tablename__ = 'amenities'
-        name = Column(String(128), nullable=False)
-    else:
-        name = ""
+    """
+    This is the definition of the class for Amenity
 
-    def __init__(self, *args, **kwargs):
-        """initializes Amenity"""
-        super().__init__(*args, **kwargs)
+    Attributes:
+        name: name of the amenity
+    """
+    __tablename__ = 'amenities'
+
+    if getenv('HBNB_TYPE_STORAGE') == 'db':
+        name = Column(String(128), nullable=False)
+        place_amenities = relationship('Place', secondary='place_amenity',
+                                       viewonly=False)
+    else:
+        name = ''
